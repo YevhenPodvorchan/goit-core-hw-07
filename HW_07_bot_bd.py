@@ -30,8 +30,8 @@ class Phone(Field):
 class Birthday(Field):
     def __init__(self, value):
         try:
-            parsed_date = datetime.strptime(value, "%d.%m.%Y").date()
-            super().__init__(parsed_date)
+            datetime.strptime(value, "%d.%m.%Y")
+            super().__init__(value)
         except ValueError:
             raise ValueError("Invalid date format. Use DD.MM.YYYY")
 
@@ -66,7 +66,7 @@ class Record:
 
     def __str__(self):
         phones = "; ".join(p.value for p in self.phones)
-        birthday = self.birthday.value.strftime("%d.%m.%Y") if self.birthday else "No birthday set"
+        birthday = self.birthday.value if self.birthday else "No birthday set"
         return f"Contact name: {self.name.value}, phones: {phones}, birthday: {birthday}"
 
 class AddressBook(UserDict):
@@ -85,7 +85,8 @@ class AddressBook(UserDict):
         upcoming = []
         for record in self.data.values():
             if record.birthday:
-                birthday_this_year = record.birthday.value.replace(year=today.year)
+                birthday_date = datetime.strptime(record.birthday.value, "%d.%m.%Y").date()
+                birthday_this_year = birthday_date.replace(year=today.year)
                 if birthday_this_year < today:
                     birthday_this_year = birthday_this_year.replace(year=today.year + 1)
                 delta_days = (birthday_this_year - today).days
@@ -93,7 +94,7 @@ class AddressBook(UserDict):
                     if birthday_this_year.weekday() >= 5:
                         birthday_this_year += timedelta(days=(7 - birthday_this_year.weekday()))
                     upcoming.append({"name": record.name.value, "birthday": birthday_this_year.strftime("%d.%m.%Y")})
-        return upcoming
+            return upcoming
 
 @input_error
 def add_contact(args, book: AddressBook):
@@ -146,9 +147,7 @@ def show_birthday(args, book: AddressBook):
     record = book.find(name)
     if record is None:
         raise KeyError("Contact not found.")
-    if record.birthday is None:
-        return "No birthday set."
-    return record.birthday.value.strftime("%d.%m.%Y")
+    return record.birthday.value if record.birthday else "No birthday set"
 
 @input_error
 def birthdays(book: AddressBook):
