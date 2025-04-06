@@ -94,7 +94,7 @@ class AddressBook(UserDict):
                     if birthday_this_year.weekday() >= 5:
                         birthday_this_year += timedelta(days=(7 - birthday_this_year.weekday()))
                     upcoming.append({"name": record.name.value, "birthday": birthday_this_year.strftime("%d.%m.%Y")})
-            return upcoming
+        return upcoming
 
 @input_error
 def add_contact(args, book: AddressBook):
